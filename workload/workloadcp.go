@@ -7,7 +7,9 @@ import (
 	"github.com/rancher/cli/cliclient"
 	"github.com/rancher/cli/config"
 	"github.com/rancher/norman/types"
+	client "github.com/rancher/types/client/project/v3"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -25,6 +27,7 @@ var (
 
 	cmdType  = flag.Int("type", 0, `0: create,1: update`)
 	ignoreWs = flag.String("ignore", "nacos", `ignore workload`)
+	ipReg    = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(:[0-9]{1,5})?$`
 )
 
 func getDestProject() string {
@@ -149,13 +152,20 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println("-----------------project workloads ---------------------")
-	srcMap := map[string]string{}
+	srcMap := map[string]map[string]string{}
+	var srcWorkLoad = map[string]client.Workload{}
 	for _, workload := range workloads.Data {
 		if workload.NamespaceId == *srcNamespace {
+			srcWorkLoad[workload.Name] = workload
 			for _, container := range workload.Containers {
 				envName := fmt.Sprintf("%s_%s", workload.Name, container.Name)
 				fmt.Println(envName, " = ", container.Image)
-				srcMap[envName] = container.Image
+				m := map[string]string{}
+				m[envName] = container.Image
+				for key, val := range container.Environment {
+					m[key] = val
+				}
+				srcMap[envName] = m
 			}
 		}
 	}
@@ -242,11 +252,33 @@ func main() {
 				for idx, container := range workload.Containers {
 					envName := fmt.Sprintf("%s_%s", workload.Name, container.Name)
 					fmt.Println(envName, " = ", container.Image)
-					if len(srcMap[envName]) > 0 && container.Image != srcMap[envName] {
-						chang = true
-						container.Image = srcMap[envName]
+					c2, ok := srcMap[envName]
+					if ok {
+						w, ok := srcWorkLoad[workload.Name]
+						if ok {
+							for _, c := range w.Containers {
+								if container.Name == c.Name {
+									if container.Image != c2[envName] || len(container.Environment) != len(c.Environment) {
+										chang = true
+										container.Image = c2[envName]
+										for key, val := range c2 {
+											if key == envName || key == "SPRING_PROFILES_ACTIVE" || key == "SPRING_CLOUD_NACOS_CONFIG_NAMESPACE" || key == "SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE" {
+												continue
+											}
+											match, _ := regexp.MatchString(ipReg, val)
+											if match == false {
+												container.Environment[key] = val
+											}
+										}
+										container.ReadinessProbe = c.ReadinessProbe
+										container.LivenessProbe = c.LivenessProbe
+										cimages[idx] = deepcopy.Copy(container)
+									}
+									break
+								}
+							}
+						}
 					}
-					cimages[idx] = deepcopy.Copy(container)
 				}
 				if chang {
 					_, err = destPrjCli.ProjectClient.Workload.Update(&workload, map[string][]interface{}{
