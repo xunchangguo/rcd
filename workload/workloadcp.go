@@ -49,7 +49,7 @@ func getDestNamespace() string {
 func getSourceNamespace() string {
 	value := os.Getenv("SRC_NAMEPACE")
 	if value == "" {
-		return "test"
+		return "dfs-uat"
 	}
 	return value
 }
@@ -57,7 +57,7 @@ func getSourceNamespace() string {
 func getSourceProject() string {
 	value := os.Getenv("SRC_PROJECT")
 	if value == "" {
-		return "c-tsqvs:p-sv76l"
+		return "c-tsqvs:p-qpmwg"
 	}
 	return value
 }
@@ -73,7 +73,7 @@ func getSourceRancherToken() string {
 func getDestRancherToken() string {
 	value := os.Getenv("DEST_TOKEN")
 	if value == "" {
-		return "token-5c68p:79phkbc2mvzpgs69lg2bq7dmp8g2plq9px5vgl64phtxvxwkhvnvxl"
+		return "token-tfjk7:2wg74zzpjk75b526b9sm4qmph9rsdlw5q7pbc9dv926r8886prdqzp"
 	}
 	return value
 }
