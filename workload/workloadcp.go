@@ -25,7 +25,7 @@ var (
 	destNamespace = flag.String("dest_namespace", getDestNamespace(), `dest namespace`)
 	nodeSelect    = flag.String("node_select", "stage = prod", `worker node selector`)
 
-	cmdType  = flag.Int("type", 0, `0: create,1: update`)
+	cmdType  = flag.Int("type", 1, `0: create,1: update`)
 	ignoreWs = flag.String("ignore", "nacos", `ignore workload`)
 	ipReg    = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(:[0-9]{1,5})?$`
 )
@@ -73,7 +73,7 @@ func getSourceRancherToken() string {
 func getDestRancherToken() string {
 	value := os.Getenv("DEST_TOKEN")
 	if value == "" {
-		return "token-tfjk7:2wg74zzpjk75b526b9sm4qmph9rsdlw5q7pbc9dv926r8886prdqzp"
+		return "token-pl8wm:cffstql8mh5vzq5lt8dt9mw24qqqm2k2t2vbnrtfqgm5qsmw6jd7gb"
 	}
 	return value
 }
@@ -125,7 +125,7 @@ func main() {
 	}
 
 	var arr []string = nil
-	if len(*ignoreWs) == 0 {
+	if len(*ignoreWs) > 0 {
 		arr = strings.Split(*ignoreWs, ",")
 	}
 
@@ -244,8 +244,19 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("-----------------project workloads ---------------------")
-
+		ig := false
 		for _, workload := range workloads.Data {
+			ig = false
+			for _, v := range arr {
+				if strings.Contains(v, workload.Name) {
+					fmt.Printf("ignore workload %s \n", workload.Name)
+					ig = true
+					break
+				}
+			}
+			if ig == true {
+				continue
+			}
 			if workload.NamespaceId == *destNamespace {
 				cimages := make([]interface{}, len(workload.Containers), len(workload.Containers))
 				chang := false
