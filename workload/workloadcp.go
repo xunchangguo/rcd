@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	authKey      = flag.String("auth", "", `auth info`)
 	token        = flag.String("src_token", getSourceRancherToken(), "source token")
 	endpoint     = flag.String("src_endpoint", getSourceRancherAddress(), "endpoint of the Source rancher server")
 	srcProject   = flag.String("src_project", getSourceProject(), `source project`)
@@ -25,9 +26,10 @@ var (
 	destNamespace = flag.String("dest_namespace", getDestNamespace(), `dest namespace`)
 	nodeSelect    = flag.String("node_select", "stage = prod", `worker node selector`)
 
-	cmdType  = flag.Int("type", 1, `0: create,1: update`)
-	ignoreWs = flag.String("ignore", "nacos", `ignore workload`)
-	ipReg    = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(:[0-9]{1,5})?$`
+	cmdType     = flag.Int("type", 1, `0: create,1: update`)
+	ignoreWs    = flag.String("ignore", "nacos", `ignore workload`)
+	ipReg       = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(:[0-9]{1,5})?$`
+	defaultAuth = "wuhj765lljfc$328kI98g0*7"
 )
 
 func getDestProject() string {
@@ -113,6 +115,16 @@ func baseListOpts() *types.ListOpts {
 
 func main() {
 	flag.Parse()
+	if len(*authKey) <= 0 {
+		fmt.Println("auth info is empty")
+		os.Exit(1)
+	}
+
+	if defaultAuth != *authKey {
+		fmt.Println("invalid auth info")
+		os.Exit(1)
+	}
+
 	auth := strings.Split(*token, ":")
 	if len(auth) != 2 {
 		fmt.Println("invalid token")
