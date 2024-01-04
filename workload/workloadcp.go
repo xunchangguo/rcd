@@ -27,9 +27,10 @@ var (
 	nodeSelect    = flag.String("node_select", "stage = prod", `worker node selector`)
 
 	cmdType     = flag.Int("type", 1, `0: create,1: update`)
+	check       = flag.Int("check", 1, `0: do not check image,1: check image mast be prod`)
 	ignoreWs    = flag.String("ignore", "nacos", `ignore workload`)
 	ipReg       = `^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)(:[0-9]{1,5})?$`
-	defaultAuth = "wuhj765lljfc$328kI98g0*7"
+	defaultAuth = "asdhjliputr8ujytr54eiolrd4434fde"
 )
 
 func getDestProject() string {
@@ -67,7 +68,7 @@ func getSourceProject() string {
 func getSourceRancherToken() string {
 	value := os.Getenv("SRC_TOKEN")
 	if value == "" {
-		return "token-m7cnq:8wv6rntvdh7thl8xbt8qxqn2g9w4l2vg2vhg5xh6fnmzhjprbj7s98"
+		return "8wv6rntvdh7thl8xbt8qxqn2g9w4l2vg2vhg5xh6fnmzhjprbj7s98"
 	}
 	return value
 }
@@ -75,7 +76,7 @@ func getSourceRancherToken() string {
 func getDestRancherToken() string {
 	value := os.Getenv("DEST_TOKEN")
 	if value == "" {
-		return "token-pl8wm:cffstql8mh5vzq5lt8dt9mw24qqqm2k2t2vbnrtfqgm5qsmw6jd7gb"
+		return "cffstql8mh5vzq5lt8dt9mw24qqqm2k2t2vbnrtfqgm5qsmw6jd7gb"
 	}
 	return value
 }
@@ -125,11 +126,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	*token = "token-gmh8j:6fjkfnlkhkn2gkjwdkh7vtjnlxcz9kbhgnbn84q7wpvxgvg5vzc72n"
 	auth := strings.Split(*token, ":")
 	if len(auth) != 2 {
 		fmt.Println("invalid token")
 		os.Exit(1)
 	}
+	*destToken = "token-pl8wm:" + *destToken
 	destAuth := strings.Split(*destToken, ":")
 	if len(destAuth) != 2 {
 		fmt.Println("invalid  dest token")
@@ -172,6 +175,11 @@ func main() {
 			for _, container := range workload.Containers {
 				envName := fmt.Sprintf("%s_%s", workload.Name, container.Name)
 				fmt.Println(envName, " = ", container.Image)
+				if *check == 1 {
+					if strings.Contains(container.Image, "/prod/") == false {
+						break
+					}
+				}
 				m := map[string]string{}
 				m[envName] = container.Image
 				for key, val := range container.Environment {

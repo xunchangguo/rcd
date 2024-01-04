@@ -6,7 +6,6 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/rancher/cli v2.2.0+incompatible
 	github.com/rancher/norman v0.0.0-20230110004459-34230bb2787c
-	github.com/rancher/rancher/pkg/client v0.0.0-20230329190956-4a9b7ba441c9
 	github.com/rancher/types v0.0.0-20220328215343-4370ff10ecd5
 )
 
