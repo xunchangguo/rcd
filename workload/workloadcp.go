@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	authKey      = flag.String("auth", "", `auth info`)
+	//authKey      = flag.String("auth", "", `auth info`)
 	token        = flag.String("src_token", getSourceRancherToken(), "source token")
 	endpoint     = flag.String("src_endpoint", getSourceRancherAddress(), "endpoint of the Source rancher server")
 	srcProject   = flag.String("src_project", getSourceProject(), `source project`)
@@ -116,12 +116,19 @@ func baseListOpts() *types.ListOpts {
 
 func main() {
 	flag.Parse()
-	if len(*authKey) <= 0 {
+	var authKey string
+	fmt.Print("please input you auth info: ")
+	_, err := fmt.Scanln(&authKey)
+	if err != nil {
+		fmt.Println("get auth info error")
+		os.Exit(1)
+	}
+	if len(authKey) <= 0 {
 		fmt.Println("auth info is empty")
 		os.Exit(1)
 	}
 
-	if defaultAuth != *authKey {
+	if defaultAuth != authKey {
 		fmt.Println("invalid auth info")
 		os.Exit(1)
 	}
