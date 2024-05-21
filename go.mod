@@ -4,9 +4,11 @@ go 1.19
 
 require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/rancher/cli v2.2.0+incompatible
 	github.com/rancher/norman v0.0.0-20230110004459-34230bb2787c
 	github.com/rancher/types v0.0.0-20220328215343-4370ff10ecd5
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )
 
 require (
@@ -15,6 +17,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rancher/wrangler v1.0.1-0.20230131212012-76adc44fca0c // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect

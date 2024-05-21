@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"github.com/rancher/cli/cliclient"
 	"github.com/rancher/cli/config"
 	"github.com/rancher/norman/types"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 )
 
 var (
@@ -17,8 +19,6 @@ var (
 	endpoint  = flag.String("endpoint", getRancherAddress(), "endpoint of the Source rancher server")
 	project   = flag.String("project", getProject(), `project`)
 	namespace = flag.String("namepace", getNamespace(), `namespace`)
-
-	workloadName = flag.String("name", "", "workload name")
 
 	defaultAuth = "gHjIoLpor9oiyugfvcsiolrd4434fde"
 )
@@ -75,7 +75,6 @@ func main() {
 		fmt.Println("invalid auth info")
 		os.Exit(1)
 	}
-
 	*token = "token-pl8wm:" + *token
 	auth := strings.Split(*token, ":")
 	if len(auth) != 2 {
@@ -100,29 +99,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	workloads, err := proclitic.ProjectClient.Workload.List(&types.ListOpts{
+	plist, err := proclitic.ProjectClient.Pod.List(&types.ListOpts{
 		Filters: map[string]interface{}{
 			"namespaceId": *namespace,
 			"limit":       -1,
 			"all":         true,
-			"name":        *workloadName,
 		},
 	})
+
 	if err != nil {
-		fmt.Printf("find project workloads error, %v \n", err)
+		fmt.Printf("find project pod error, %v \n", err)
 		os.Exit(1)
 	}
-	findCount := len(workloads.Data)
-	fmt.Println("find workloads : ", *workloadName, " count = ", findCount)
-	if findCount == 1 {
-		err := proclitic.ProjectClient.Workload.ActionRedeploy(&workloads.Data[0])
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Name", "State", "StartTime"})
+	location, err := time.LoadLocation("Asia/Shanghai")
+	for _, pod := range plist.Data {
+		startTime, err := time.ParseInLocation(time.RFC3339, pod.Status.StartTime, time.UTC)
 		if err != nil {
-			fmt.Printf("restart project %s workload app error, %v \n", *workloadName, err)
-			return
+			table.Append([]string{pod.Name, pod.State, pod.Status.StartTime})
 		} else {
-			fmt.Printf("restart project %s workload app sucess\n", *workloadName)
+			table.Append([]string{pod.Name, pod.State, startTime.In(location).Format("2006-01-02 15:04:05")})
 		}
-	} else {
-		fmt.Println("fail: can not find ", *workloadName)
 	}
+	table.Render()
 }

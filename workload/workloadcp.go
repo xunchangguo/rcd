@@ -8,9 +8,11 @@ import (
 	"github.com/rancher/cli/config"
 	"github.com/rancher/norman/types"
 	client "github.com/rancher/types/client/project/v3"
+	"golang.org/x/term"
 	"os"
 	"regexp"
 	"strings"
+	"syscall"
 )
 
 var (
@@ -118,11 +120,13 @@ func main() {
 	flag.Parse()
 	var authKey string
 	fmt.Print("please input you auth info: ")
-	_, err := fmt.Scanln(&authKey)
+	psw, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Println()
 	if err != nil {
 		fmt.Println("get auth info error")
 		os.Exit(1)
 	}
+	authKey = string(psw)
 	if len(authKey) <= 0 {
 		fmt.Println("auth info is empty")
 		os.Exit(1)
