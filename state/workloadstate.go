@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/norman/types"
 	"golang.org/x/term"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -113,14 +114,21 @@ func main() {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "State", "StartTime"})
+	table.SetHeader([]string{"Name", "State", "restart", "Start Time", "Image"})
 	location, err := time.LoadLocation("Asia/Shanghai")
 	for _, pod := range plist.Data {
 		startTime, err := time.ParseInLocation(time.RFC3339, pod.Status.StartTime, time.UTC)
-		if err != nil {
-			table.Append([]string{pod.Name, pod.State, pod.Status.StartTime})
+		index := strings.Index(pod.Containers[0].Image, "/")
+		var s string
+		if index > 0 {
+			s = pod.Containers[0].Image[index:]
 		} else {
-			table.Append([]string{pod.Name, pod.State, startTime.In(location).Format("2006-01-02 15:04:05")})
+			s = pod.Containers[0].Image
+		}
+		if err != nil {
+			table.Append([]string{pod.Name, pod.State, strconv.FormatInt(pod.Containers[0].RestartCount, 10), pod.Status.StartTime, s})
+		} else {
+			table.Append([]string{pod.Name, pod.State, strconv.FormatInt(pod.Containers[0].RestartCount, 10), startTime.In(location).Format("2006-01-02 15:04:05"), s})
 		}
 	}
 	table.Render()
